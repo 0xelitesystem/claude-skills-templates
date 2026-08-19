@@ -88,3 +88,5 @@ Part of a catalog of single-file browser tools and plain-language references, al
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+Independent project. Not affiliated with, endorsed by, or sponsored by Anthropic. Claude is a trademark of Anthropic PBC.
