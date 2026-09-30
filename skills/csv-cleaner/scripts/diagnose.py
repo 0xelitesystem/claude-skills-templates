@@ -15,6 +15,33 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+# Characters a terminal acts on instead of displaying: C0 controls except
+# tab and newline, DEL, C1 controls, and the Unicode bidi controls.
+_TERMINAL_CONTROLS = frozenset(
+    [chr(c) for c in range(0x20) if chr(c) not in "\t\n"]
+    + [chr(c) for c in range(0x7F, 0xA0)]
+    + [chr(c) for c in (0x061C, 0x200E, 0x200F)]
+    + [chr(c) for c in range(0x202A, 0x202F)]
+    + [chr(c) for c in range(0x2066, 0x206A)]
+)
+
+
+def safe(value) -> str:
+    """Escape terminal control characters in untrusted text before printing.
+
+    File names and CSV cells come from whoever made the file. Printed raw,
+    an ESC or BEL inside them becomes a live escape sequence that can erase
+    warnings, retitle the window, or write the clipboard.
+    """
+    out = []
+    for ch in str(value):
+        if ch in _TERMINAL_CONTROLS:
+            code = ord(ch)
+            out.append(f"\\x{code:02x}" if code < 0x100 else f"\\u{code:04x}")
+        else:
+            out.append(ch)
+    return "".join(out)
+
 
 def detect_encoding(path: Path) -> str:
     """Try common encodings; return the first that decodes cleanly."""
@@ -99,11 +126,11 @@ def is_null(v) -> bool:
 def main(path_str: str) -> int:
     path = Path(path_str)
     if not path.exists():
-        print(f"ERROR: file not found: {path}")
+        print(f"ERROR: file not found: {safe(path)}")
         return 1
 
     encoding = detect_encoding(path)
-    print(f"## File: {path.name}")
+    print(f"## File: {safe(path.name)}")
     print(f"Encoding: {encoding}")
     print(f"Size: {path.stat().st_size} bytes")
     print()
@@ -160,7 +187,7 @@ def main(path_str: str) -> int:
         nulls = sum(1 for v in col_values if is_null(v))
         col_type = infer_type(col_values)
         null_pct = (nulls / len(data) * 100) if data else 0
-        print(f"  [{i}] {name}: type={col_type}, nulls={nulls} ({null_pct:.1f}%)")
+        print(f"  [{i}] {safe(name)}: type={col_type}, nulls={nulls} ({null_pct:.1f}%)")
     print()
 
     seen = set()
