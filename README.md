@@ -1,4 +1,6 @@
-# claude-skills-templates
+# agent-skill-blueprints
+
+Formerly claude-skills-templates. The old repository address redirects here.
 
 Five production-ready Claude Skills you can drop into Claude Code, Claude.ai, or the Claude API. Each skill demonstrates a different SKILL.md pattern: pure-prompt, structured workflow, configurable reference file, executable script, and decision-support.
 
